@@ -13,4 +13,8 @@ http://docs.ros.org/api/rosgraph_msgs/html/msg/Log.html
 Implementation of EMF
 https://github.com/pyecore/pyecore
 
-http://docs.ros.org/melodic/api/diagnostic_msgs/html/msg/DiagnosticStatus.html
+http://docs.ros.org/melodic/api/diagnostic_msgs/html/msg/DiagnosticStatus.html  
+
+**Terminologies:** (from OPC-UA)
+MonitoredItem - entities to monitor *Nodes*, create *Notification* when change detected for clients through *Subscriptions*  
+Subscription - publishes *Notifications* to client
