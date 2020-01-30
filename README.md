@@ -15,6 +15,6 @@ https://github.com/pyecore/pyecore
 
 http://docs.ros.org/melodic/api/diagnostic_msgs/html/msg/DiagnosticStatus.html  
 
-**Terminologies:** (from OPC-UA)
+**Terminologies:** (from OPC-UA)  
 MonitoredItem - entities to monitor *Nodes*, create *Notification* when change detected for clients through *Subscriptions*  
 Subscription - publishes *Notifications* to client
