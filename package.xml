@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rosgraph_monitor</name>
+  <version>0.0.1</version>
+  <description>ROS graph monitor</description>
+
+  <maintainer email="hsd@ipa.fraunhofer.de">Harsh Deshpande</maintainer>
+  <license>Apache 2.0</license>
+  <author email="hsd@ipa.fraunhofer.de">Harsh Deshpande</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <exec_depend>rospy</exec_depend>
+
+  <export>
+  </export>
+</package>
