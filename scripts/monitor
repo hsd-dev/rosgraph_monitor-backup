@@ -3,18 +3,18 @@
 import rospy
 from rosgraph_monitor.monitor_manager import MonitorManager, ServiceWrapper
 
-from ros_graph_parser.srv import Scan
+from ros_graph_parser.srv import GetROSModel
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 
 class GraphScanService(ServiceWrapper):
     def __init__(self):
-        super(GraphScanService, self).__init__('scan_ros_graph', Scan)
+        super(GraphScanService, self).__init__('get_ros_model', GetROSModel)
 
     # This function needs to be implemented by every service wrapper
     # extract diagnostics from response here
     def diagnostics_from_response(self, resp):
-        # print(resp)
+        print(resp)
 
         self.compare_with_model(resp)
 
