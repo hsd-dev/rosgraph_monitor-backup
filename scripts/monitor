@@ -1,21 +1,29 @@
 #!/usr/bin/env python
 
 import rospy
-from rosgraph_monitor.monitor_manager import MonitorManager, ServiceWrapper, ModelParser
+from rosgraph_monitor.monitor_manager import MonitorManager, ServiceWrapper  # , ModelParser
+from rosgraph_monitor.parser import ModelParser
+from pyparsing import *
+import os.path
 
-from ros_graph_parser.srv import GetROSModel
+from ros_graph_parser.srv import GetROSModel, GetROSSystemModel
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 
 class GraphScanService(ServiceWrapper):
-    def __init__(self):
-        super(GraphScanService, self).__init__('get_ros_model', GetROSModel)
+    def __init__(self, haros_model):
+        super(GraphScanService, self).__init__(
+            'get_rossystem_model', GetROSSystemModel)
+        self._rossystem_parser = ModelParser(haros_model)
 
     # This function needs to be implemented by every service wrapper
     # extract diagnostics from response here
     def diagnostics_from_response(self, resp):
-        print(resp)
-
+        parser = ModelParser(resp.model, isFile=False)
+        dynamic_model = parser.parse()
+        static_model = self._rossystem_parser.parse()
+        print(dynamic_model.dump())
+        print(static_model.dump())
         self.compare_with_model(resp)
 
         status_msg = DiagnosticStatus()
@@ -35,30 +43,32 @@ if __name__ == "__main__":
     rospy.init_node('graph_monitor')
     manager = MonitorManager()
 
+    my_path = os.path.abspath(os.path.dirname(__file__))
+    path = os.path.join(my_path, "../resources/robotino.rossystem")
+
     # how can this be read from a YAML file
     # ideally should have service name and type only
-    #graph_service = GraphScanService()
-    #manager.register_service(graph_service)
+    graph_service = GraphScanService(path)
+    manager.register_service(graph_service)
 
-    ## MODEL PARSER
+    # MODEL PARSER
     ##
-    ## INPUT: a string of the rosystem model.
-    ##       1) get the one extracted using haros from a file or from parameter server
-    ##       2) service call to ros_graph_parser that response with the model
-    ## format example:
-    #input_model = str("RosSystem { Name cob_min_test RosComponents (        ComponentInterface { name '/light_torso' RosPublishers {     RosPublisher '/diagnostics' {RefPublisher 'dump_pkg./light_torso./light_torso./diagnostics'},     RosPublisher '/light_torso/marker' {RefPublisher 'dump_pkg./light_torso./light_torso./light_torso/marker'}} RosSubscribers {     RosSubscriber '/light_torso/command' {RefSubscriber 'dump_pkg./light_torso./light_torso./light_torso/command'}} RosSrvServers {     RosServiceServer '/light_torso/set_light' {RefServer 'dump_pkg./light_torso./light_torso./light_torso/set_light'},     RosServiceServer '/light_torso/stop_mode' {RefServer 'dump_pkg./light_torso./light_torso./light_torso/stop_mode'}} RosActionServers {     RosActionServer '/light_torso/set_light/' {RefServer 'dump_pkg./light_torso./light_torso./light_torso/set_light/'}} },ComponentInterface { name '/base_laser_front/driver' NameSpace '/base_laser_front/'          RosPublishers{             RosPublisher '/base_laser_front/scan' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan'},             RosPublisher '/base_laser_front/scan_standby' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan_standby'},             RosPublisher '/diagnostics' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300./diagnostics'}} },     ComponentInterface { name '/base_laser_front/scan_filter' NameSpace '/base_laser_front/'          RosPublishers{             RosPublisher '/base_laser_front/scan_out' { RefPublisher 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_out'}}         RosSubscribers{             RosSubscriber '/base_laser_front/scan_in' { RefSubscriber 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_in'}} },     ComponentInterface { name '/base_laser_left/driver' NameSpace '/base_laser_left/'          RosPublishers{             RosPublisher '/base_laser_left/scan' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan'},             RosPublisher '/base_laser_left/scan_standby' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan_standby'},             RosPublisher '/diagnostics' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300./diagnostics'}} },     ComponentInterface { name '/base_laser_left/scan_filter' NameSpace '/base_laser_left/'          RosPublishers{             RosPublisher '/base_laser_left/scan' { RefPublisher 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_out'}}         RosSubscribers{             RosSubscriber '/base_laser_left/scan_in' { RefSubscriber 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_in'}} },     ComponentInterface { name '/base_laser_right/driver' NameSpace '/base_laser_right/'          RosPublishers{             RosPublisher '/base_laser_right/scan' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan'},             RosPublisher '/base_laser_right/scan_standby' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan_standby'},             RosPublisher '/diagnostics' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300./diagnostics'}} },     ComponentInterface { name '/base_laser_right/scan_filter' NameSpace '/base_laser_right/'          RosPublishers{             RosPublisher '/base_laser_right/scan_out' { RefPublisher 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_out'}}         RosSubscribers{             RosSubscriber '/base_laser_right/scan' { RefSubscriber 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_in'}} } ) TopicConnections { TopicConnection '/base_laser_front/scan' { From ( '/base_laser_front/driver./base_laser_front/scan' ) To ( '/base_laser_left/scan_filter./base_laser_left/scan_in' ) } , TopicConnection '/base_laser_left/scan' { From ( '/base_laser_left/driver./base_laser_left/scan' ) To ( '/base_laser_right/scan_filter./base_laser_right/scan_in' ) } , TopicConnection '/base_laser_right/scan' { From ( '/base_laser_right/driver./base_laser_right/scan' ) To ( '/base_laser_front/scan_filter./base_laser_front/scan_in' ) } } }")
-    #parser = ModelParser(input_model)
-    #paser.get_nodes()
-    #=> parser.nodes 
-    #paser.get_connections_from_model()
-    #=> parser.topic_connections
-    #=> parser.service_connections
-    #=> parser.action_connections
-    #parser.compute_connections()
-    #=> parser.auto_topic_connections
-    #=> parser.auto_service_connections
-    #=> parser.auto_action_connections
-
+    # INPUT: a string of the rosystem model.
+    # 1) get the one extracted using haros from a file or from parameter server
+    # 2) service call to ros_graph_parser that response with the model
+    # format example:
+    # input_model = str("RosSystem { Name cob_min_test RosComponents (        ComponentInterface { name '/light_torso' RosPublishers {     RosPublisher '/diagnostics' {RefPublisher 'dump_pkg./light_torso./light_torso./diagnostics'},     RosPublisher '/light_torso/marker' {RefPublisher 'dump_pkg./light_torso./light_torso./light_torso/marker'}} RosSubscribers {     RosSubscriber '/light_torso/command' {RefSubscriber 'dump_pkg./light_torso./light_torso./light_torso/command'}} RosSrvServers {     RosServiceServer '/light_torso/set_light' {RefServer 'dump_pkg./light_torso./light_torso./light_torso/set_light'},     RosServiceServer '/light_torso/stop_mode' {RefServer 'dump_pkg./light_torso./light_torso./light_torso/stop_mode'}} RosActionServers {     RosActionServer '/light_torso/set_light/' {RefServer 'dump_pkg./light_torso./light_torso./light_torso/set_light/'}} },ComponentInterface { name '/base_laser_front/driver' NameSpace '/base_laser_front/'          RosPublishers{             RosPublisher '/base_laser_front/scan' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan'},             RosPublisher '/base_laser_front/scan_standby' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan_standby'},             RosPublisher '/diagnostics' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300./diagnostics'}} },     ComponentInterface { name '/base_laser_front/scan_filter' NameSpace '/base_laser_front/'          RosPublishers{             RosPublisher '/base_laser_front/scan_out' { RefPublisher 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_out'}}         RosSubscribers{             RosSubscriber '/base_laser_front/scan_in' { RefSubscriber 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_in'}} },     ComponentInterface { name '/base_laser_left/driver' NameSpace '/base_laser_left/'          RosPublishers{             RosPublisher '/base_laser_left/scan' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan'},             RosPublisher '/base_laser_left/scan_standby' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan_standby'},             RosPublisher '/diagnostics' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300./diagnostics'}} },     ComponentInterface { name '/base_laser_left/scan_filter' NameSpace '/base_laser_left/'          RosPublishers{             RosPublisher '/base_laser_left/scan' { RefPublisher 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_out'}}         RosSubscribers{             RosSubscriber '/base_laser_left/scan_in' { RefSubscriber 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_in'}} },     ComponentInterface { name '/base_laser_right/driver' NameSpace '/base_laser_right/'          RosPublishers{             RosPublisher '/base_laser_right/scan' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan'},             RosPublisher '/base_laser_right/scan_standby' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300.scan_standby'},             RosPublisher '/diagnostics' { RefPublisher 'cob_sick_s300.cob_sick_s300.cob_sick_s300./diagnostics'}} },     ComponentInterface { name '/base_laser_right/scan_filter' NameSpace '/base_laser_right/'          RosPublishers{             RosPublisher '/base_laser_right/scan_out' { RefPublisher 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_out'}}         RosSubscribers{             RosSubscriber '/base_laser_right/scan' { RefSubscriber 'cob_sick_s300.cob_scan_filter.cob_scan_filter.scan_in'}} } ) TopicConnections { TopicConnection '/base_laser_front/scan' { From ( '/base_laser_front/driver./base_laser_front/scan' ) To ( '/base_laser_left/scan_filter./base_laser_left/scan_in' ) } , TopicConnection '/base_laser_left/scan' { From ( '/base_laser_left/driver./base_laser_left/scan' ) To ( '/base_laser_right/scan_filter./base_laser_right/scan_in' ) } , TopicConnection '/base_laser_right/scan' { From ( '/base_laser_right/driver./base_laser_right/scan' ) To ( '/base_laser_front/scan_filter./base_laser_front/scan_in' ) } } }")
+    # parser = ModelParser(input_model)
+    # paser.get_nodes()
+    # => parser.nodes
+    # paser.get_connections_from_model()
+    # => parser.topic_connections
+    # => parser.service_connections
+    # => parser.action_connections
+    # parser.compute_connections()
+    # => parser.auto_topic_connections
+    # => parser.auto_service_connections
+    # => parser.auto_action_connections
 
     manager.loop()
     rospy.spin()
