@@ -36,6 +36,8 @@ class MonitorManager(object):
             target=self.call_all, args=(rate,))
         self._thread.daemon = True
 
+    # wrong service not caught properly
+    # ERROR (in case of wrong type): thread.error: release unlocked lock
     def register_service(self, service):
         try:
             rospy.wait_for_service(service.name, timeout=1.0)
