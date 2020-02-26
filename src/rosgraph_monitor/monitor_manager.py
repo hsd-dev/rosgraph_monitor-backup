@@ -60,7 +60,7 @@ class MonitorManager(object):
             self._ser_lock.acquire()
             for service in self._services:
                 status_msg = service.generate_diagnostics()
-                diag_msg.status.append(status_msg)
+                diag_msg.status.extend(status_msg)
 
             self._pub_diag.publish(diag_msg)
             self._ser_lock.release()
