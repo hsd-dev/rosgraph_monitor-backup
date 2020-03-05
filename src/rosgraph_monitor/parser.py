@@ -70,8 +70,19 @@ class ModelParser(object):
         _from = Keyword("From").suppress()
         _to = Keyword("To").suppress()
 
+        param_val = _value + values("value")
+        param_vals = Dict(OneOrMore(Group(sglQuotedString.setParseAction(
+            removeQuotes) + nestedExpr('{', '}', content=param_val))))
+        param_values = _value + \
+            nestedExpr('{', '}', content=delimitedList(
+                OCB + param_vals + CCB, delim=','))("params")
+        param_list = _value + OCB + delimitedList(values, delim=',') + CCB
+
+        param_list = _value + (OCB + delimitedList(
+            (values | (OCB + Group(delimitedList(values, delim=',')) + CCB)), delim=',') + CCB)("values")
+
         parameter = Group(_parameter + name("param_name") +
-                          OCB + _ref_parameter + name("param_path") + _value + (values | nestedExpr('{', '}')) + CCB)
+                          OCB + _ref_parameter + name("param_path") + (param_val | param_list | param_values) + CCB)
         parameters = (_parameters + OCB +
                       OneOrMore(parameter + Optional(",").suppress()) + CCB)
 
