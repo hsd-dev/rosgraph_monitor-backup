@@ -18,10 +18,21 @@ class ModelParser(object):
         OCB, CCB, ORB, CRB, SQ = map(Suppress, "{}()'")
         name = SQ + Word(printables, excludeChars="{},'") + SQ
 
+        sglQStr = QuotedString("'", multiline=True)
+        real = Combine(Word(nums) + '.' + Word(nums))
+        values = real | Word(
+            nums) | Word(alphas) | sglQStr
+
         _system = Keyword("RosSystem").suppress()
         _name = CaselessKeyword("name").suppress()
         _component = Keyword("RosComponents").suppress()
         _interface = Keyword("ComponentInterface").suppress()
+
+        # Parameter Def
+        _parameters = Keyword("RosParameters").suppress()
+        _parameter = Keyword("RosParameter").suppress()
+        _ref_parameter = Keyword("RefParameter").suppress()
+        _value = Keyword("value").suppress()
 
         # Subscriber Def
         _subscribers = Keyword("RosSubscribers").suppress()
@@ -58,6 +69,22 @@ class ModelParser(object):
         _topic_connection = Keyword("TopicConnection").suppress()
         _from = Keyword("From").suppress()
         _to = Keyword("To").suppress()
+
+        param_val = _value + values("value")
+        param_vals = Dict(OneOrMore(Group(sglQuotedString.setParseAction(
+            removeQuotes) + nestedExpr('{', '}', content=param_val))))
+        param_values = _value + \
+            nestedExpr('{', '}', content=delimitedList(
+                OCB + param_vals + CCB, delim=','))("params")
+        param_list = _value + OCB + delimitedList(values, delim=',') + CCB
+
+        param_list = _value + (OCB + delimitedList(
+            (values | (OCB + Group(delimitedList(values, delim=',')) + CCB)), delim=',') + CCB)("values")
+
+        parameter = Group(_parameter + name("param_name") +
+                          OCB + _ref_parameter + name("param_path") + (param_val | param_list | param_values) + CCB)
+        parameters = (_parameters + OCB +
+                      OneOrMore(parameter + Optional(",").suppress()) + CCB)
 
         subscriber = Group(_subscriber + name("sub_name") +
                            OCB + _ref_subscriber + name("sub_path") + CCB)
@@ -100,6 +127,7 @@ class ModelParser(object):
             _interface +
             OCB +
             _name + name("interface_name") +
+            Optional(parameters)("parameters") +
             Optional(publishers)("publishers") +
             Optional(subscribers)("subscribers") +
             Optional(services)("services") +
@@ -135,10 +163,15 @@ class ModelParser(object):
 
 
 if __name__ == "__main__":
+    import os
+    my_path = os.path.abspath(os.path.dirname(__file__))
+    path = os.path.join(
+        my_path, "../../resources/cob4-25.rossystem")
+    print(path)
 
-    parser = ModelParser("system.rossystem")
+    parser = ModelParser(path)
     try:
-        # print(parser.parse().dump())
-        print(parser.parse().interfaces[2].services)
+        print(parser.parse().dump())
+        # print(parser.parse().interfaces[2].services)
     except Exception as e:
         print(e.args)
