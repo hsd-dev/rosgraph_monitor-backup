@@ -7,21 +7,50 @@ from pyparsing import *
 # Compute Connections
 
 
+# stateless functions
+def parseActionStr(string, location, tokens):
+    if((len(tokens[0]) == 1) and (type(tokens[0][0]) == str)):
+        print(tokens)
+        return tokens[0][0]
+
+
+def parseActionDict(string, location, tokens):
+    dict_list = list()
+    for toks in tokens:
+        param_dict = dict()
+        for tok in toks:
+            param_dict[tok[0]] = tok[1]
+        dict_list.append(param_dict)
+    return dict_list
+
+
 class ModelParser(object):
     def __init__(self, model, isFile=True):
-        # OCB = Open Curly Brackets
-        # CCB = Close Curly Brackets
-        # ORB = Open Round Brackets
-        # CRB = Close Round Brackets
-        # SQ = Single Quotes'
+        # OCB = Open Curly Bracket {}
+        # CCB = Close Curly Bracket }
+        # ORB = Open Round Bracket (
+        # CRB = Close Round Bracket )
+        # SQ = Single Quotes '
+        # OSB = Open Square Bracket [
+        # CSB = Close Square Bracket ]
 
-        OCB, CCB, ORB, CRB, SQ = map(Suppress, "{}()'")
+        OCB, CCB, ORB, CRB, SQ, OSB, CSB = map(Suppress, "{}()'[]")
         name = SQ + Word(printables, excludeChars="{},'") + SQ
 
-        sglQStr = QuotedString("'", multiline=True)
         real = Combine(Word(nums) + '.' + Word(nums))
-        values = real | Word(
-            nums) | Word(alphas) | sglQStr
+
+        listStr = Forward()
+        mapStr = Forward()
+        param_value = Forward()
+
+        sglQStr = QuotedString("'", multiline=True)
+        sglQStr.setParseAction(removeQuotes)
+        string_value = Dict(
+            Group(sglQStr + ZeroOrMore(OCB + param_value + CCB)))
+
+        string_value.setParseAction(parseActionStr)
+        values = Combine(Optional("-") + real) | Combine(Optional("-") + Word(nums)
+                                                         ) | string_value | Keyword("false") | Keyword("true") | listStr | mapStr
 
         _system = Keyword("RosSystem").suppress()
         _name = CaselessKeyword("name").suppress()
@@ -70,19 +99,15 @@ class ModelParser(object):
         _from = Keyword("From").suppress()
         _to = Keyword("To").suppress()
 
-        param_val = _value + values("value")
-        param_vals = Dict(OneOrMore(Group(sglQuotedString.setParseAction(
-            removeQuotes) + nestedExpr('{', '}', content=param_val))))
-        param_values = _value + \
-            nestedExpr('{', '}', content=delimitedList(
-                OCB + param_vals + CCB, delim=','))("params")
-        param_list = _value + OCB + delimitedList(values, delim=',') + CCB
+        listStr << delimitedList(Group(OCB + delimitedList(values) + CCB))
+        mapStr << (OSB + delimitedList(Group(OCB + delimitedList((Group(
+            sglQuotedString.setParseAction(removeQuotes) + Suppress(":") + values))) + CCB)) + CSB)
+        mapStr.setParseAction(parseActionDict)
 
-        param_list = _value + (OCB + delimitedList(
-            (values | (OCB + Group(delimitedList(values, delim=',')) + CCB)), delim=',') + CCB)("values")
+        param_value << _value + (values | listStr)
 
         parameter = Group(_parameter + name("param_name") +
-                          OCB + _ref_parameter + name("param_path") + (param_val | param_list | param_values) + CCB)
+                          OCB + _ref_parameter + name("param_path") + param_value + CCB)
         parameters = (_parameters + OCB +
                       OneOrMore(parameter + Optional(",").suppress()) + CCB)
 
