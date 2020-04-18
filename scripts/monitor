@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     my_path = os.path.abspath(os.path.dirname(__file__))
     path = os.path.join(
-        my_path, "../resources/talker_listener_system.rossystem")
+        my_path, "../resources/cob4-25.rossystem")
 
     # how can this be read from a YAML file
     # ideally should have service name and type only
