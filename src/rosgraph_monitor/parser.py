@@ -10,7 +10,6 @@ from pyparsing import *
 # stateless functions
 def parseActionStr(string, location, tokens):
     if((len(tokens[0]) == 1) and (type(tokens[0][0]) == str)):
-        print(tokens)
         return tokens[0][0]
 
 
@@ -44,13 +43,12 @@ class ModelParser(object):
         param_value = Forward()
 
         sglQStr = QuotedString("'", multiline=True)
-        sglQStr.setParseAction(removeQuotes)
         string_value = Dict(
             Group(sglQStr + ZeroOrMore(OCB + param_value + CCB)))
 
         string_value.setParseAction(parseActionStr)
-        values = Combine(Optional("-") + real) | Combine(Optional("-") + Word(nums)
-                                                         ) | string_value | Keyword("false") | Keyword("true") | listStr | mapStr
+        values = (Combine(Optional("-") + real) | Combine(Optional("-") + Word(nums))).setParseAction(
+            lambda tokens: float(tokens[0])) | string_value | Keyword("false") | Keyword("true") | listStr | mapStr
 
         _system = Keyword("RosSystem").suppress()
         _name = CaselessKeyword("name").suppress()
@@ -85,12 +83,14 @@ class ModelParser(object):
 
         # ActionServers Def
         _action_servers = Keyword("RosActionServers").suppress()
-        _action_server = Keyword("RosActionServer").suppress()
+        _action_server = Keyword("RosActionServer").suppress(
+        ) | Keyword("RosServer").suppress()
         _ref_server = Keyword("RefServer").suppress()
 
         # Actio Clients Def
         _action_clients = Keyword("RosActionClients").suppress()
-        _action_client = Keyword("RosActionClient").suppress()
+        _action_client = Keyword("RosActionClient").suppress(
+        ) | Keyword("RosClient").suppress()
         _ref_action_client = Keyword("RefClient").suppress()
 
         # Topic Connections Def
@@ -107,7 +107,7 @@ class ModelParser(object):
         param_value << _value + (values | listStr)
 
         parameter = Group(_parameter + name("param_name") +
-                          OCB + _ref_parameter + name("param_path") + param_value + CCB)
+                          OCB + _ref_parameter + name("param_path") + param_value("param_value") + CCB)
         parameters = (_parameters + OCB +
                       OneOrMore(parameter + Optional(",").suppress()) + CCB)
 
