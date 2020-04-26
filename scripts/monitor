@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import rospy
-from rosgraph_monitor.monitor_manager import MonitorManager, ServiceWrapper
 from rosgraph_monitor.parser import ModelParser
 from pyparsing import *
 import os.path
@@ -122,8 +121,6 @@ class GraphScanService(ServiceWrapper):
 
 if __name__ == "__main__":
     rospy.init_node('graph_monitor')
-    manager = MonitorManager()
-
     my_path = os.path.abspath(os.path.dirname(__file__))
     path = os.path.join(
         my_path, "../resources/cob4-25.rossystem")
@@ -133,5 +130,4 @@ if __name__ == "__main__":
     graph_service = GraphScanService(path)
     manager.register_service(graph_service)
 
-    manager.loop()
     rospy.spin()
