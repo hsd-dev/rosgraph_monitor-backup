@@ -88,15 +88,15 @@ class ServiceObserver(Observer):
 
 
 class TopicObserver(Observer):
-    def __init__(self, name, loop_rate_hz, param, topics):
-        self._param_val = rospy.get_param(param)
+    def __init__(self, name, loop_rate_hz, topics):
         self._topics = topics
+        self._id = ""
         super(TopicObserver, self).__init__(name, loop_rate_hz)
 
     # Every derived class needs to override this
-    def perform_check(self, msgs):
-        # do calculations and check with param
-        return True, "ERROR"
+    def calculate_attr(self, msgs):
+        # do calculations
+        return DiagnosticStatus()
 
     def generate_diagnostics(self):
         msgs = []
@@ -105,13 +105,9 @@ class TopicObserver(Observer):
                 msgs.append(rospy.wait_for_message(topic, topic_type))
             except rospy.ROSException as exc:
                 print("Topic {} is not found: ".format(topic) + str(exc))
-        isResult, error_message = self.perform_check(msgs)
+        status_msg = self.calculate_attr(msgs)
 
         status_msgs = list()
-        status_msg = DiagnosticStatus()
-        status_msg.level = DiagnosticStatus.OK if isResult else DiagnosticStatus.ERROR
-        status_msg.name = self._name
-        status_msg.message = "running OK" if isResult else error_message
         status_msgs.append(status_msg)
 
         return status_msgs

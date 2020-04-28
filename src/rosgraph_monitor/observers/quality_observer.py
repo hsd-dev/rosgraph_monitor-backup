@@ -1,23 +1,32 @@
 from rosgraph_monitor.observer import TopicObserver
 from std_msgs.msg import Int32
+from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 
 class QualityObserver(TopicObserver):
     def __init__(self, name):
-        param = "/quality"
         topics = [("/speed", Int32), ("/accel", Int32)]     # list of pairs
 
         super(QualityObserver, self).__init__(
-            name, 10, param, topics)
+            name, 10, topics)
 
-    def perform_check(self, msgs):
+    def calculate_attr(self, msgs):
+        status_msg = DiagnosticStatus()
         if len(msgs) < 2:
-            return False, "Incorrect number of messages"
+            print("Incorrect number of messages")
+            return status_msg
         if not isinstance(msgs[0], Int32) or not isinstance(msgs[1], Int32):
-            return False, "Incorrect instance of message"
+            print("Incorrect instance of message")
+            return status_msg
 
-        isLower = (msgs[0].data + msgs[1].data) < int(self._param_val)
-        print(
-            "{0} + {1} < {2}".format(msgs[0].data, msgs[1].data, self._param_val))
+        attr = msgs[0].data + msgs[1].data
+        print("{0} + {1}".format(msgs[0].data, msgs[1].data))
 
-        return isLower, "Higher than expected"  # Error message
+        status_msg = DiagnosticStatus()
+        status_msg.level = DiagnosticStatus.OK
+        status_msg.name = self._id
+        status_msg.values.append(
+            KeyValue("enery", attr))
+        status_msg.message = "QA status"
+
+        return status_msg
