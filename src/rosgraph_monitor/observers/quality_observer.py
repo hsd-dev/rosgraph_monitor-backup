@@ -12,12 +12,6 @@ class QualityObserver(TopicObserver):
 
     def calculate_attr(self, msgs):
         status_msg = DiagnosticStatus()
-        if len(msgs) < 2:
-            print("Incorrect number of messages")
-            return status_msg
-        if not isinstance(msgs[0], Int32) or not isinstance(msgs[1], Int32):
-            print("Incorrect instance of message")
-            return status_msg
 
         attr = msgs[0].data + msgs[1].data
         print("{0} + {1}".format(msgs[0].data, msgs[1].data))

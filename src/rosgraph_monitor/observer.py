@@ -91,6 +91,7 @@ class TopicObserver(Observer):
     def __init__(self, name, loop_rate_hz, topics):
         self._topics = topics
         self._id = ""
+        self._num_topics = len(topics)
         super(TopicObserver, self).__init__(name, loop_rate_hz)
 
     # Every derived class needs to override this
@@ -100,14 +101,19 @@ class TopicObserver(Observer):
 
     def generate_diagnostics(self):
         msgs = []
+        received_all = True
         for topic, topic_type in self._topics:
             try:
                 msgs.append(rospy.wait_for_message(topic, topic_type))
             except rospy.ROSException as exc:
                 print("Topic {} is not found: ".format(topic) + str(exc))
-        status_msg = self.calculate_attr(msgs)
+                received_all = False
+                break
 
         status_msgs = list()
+        status_msg = DiagnosticStatus()
+        if received_all:
+            status_msg = self.calculate_attr(msgs)
         status_msgs.append(status_msg)
 
         return status_msgs
