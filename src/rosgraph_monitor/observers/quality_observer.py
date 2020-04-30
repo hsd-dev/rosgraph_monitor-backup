@@ -20,7 +20,7 @@ class QualityObserver(TopicObserver):
         status_msg.level = DiagnosticStatus.OK
         status_msg.name = self._id
         status_msg.values.append(
-            KeyValue("enery", attr))
+            KeyValue("enery", str(attr)))
         status_msg.message = "QA status"
 
         return status_msg
