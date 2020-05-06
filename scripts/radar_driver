@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+import math
+from bisect import bisect_left
+
+import rospy
+from turtlesim.msg import Pose
+from std_msgs.msg import Float32MultiArray
+
+quadrants = [90, 180, 270, 360]
+idx = [[0, 1], [1, 2], [2, 3], [3, 0]]
+
+
+def degrees(rad):
+    deg = math.degrees(rad)
+    return deg if rad >= 0 else (deg + 360)
+
+
+class RadarDriver():
+    def __init__(self):
+        self._num_sens = 24
+        rospy.Subscriber("/turtle1/pose", Pose, self.callback)
+        self._pub = rospy.Publisher('/radar', Float32MultiArray, queue_size=10)
+
+    def callback(self, msg):
+        theta_ = msg.theta
+
+        ranges = []
+        thetas = []
+        for i in range(self._num_sens):
+            theta = theta_ + (((math.pi * 2) / self._num_sens) * i)
+            thetas.append(theta)
+            # print("{} {} {}".format(i, degrees(theta), (math.pi * 2) / self._num_sens))
+            quad = bisect_left(quadrants, degrees(theta))
+            if quad == 4:
+                quad = 0
+            r1 = (11.0 - msg.x) / math.cos(theta)  # size of square = 11?
+            r2 = (11.0 - msg.y) / math.cos((math.pi / 2.0) - theta)
+            t_ = math.radians(degrees(math.pi - theta))
+            r3 = msg.x / math.cos(t_)
+            t_ = math.radians(degrees((3 * math.pi / 2.0) - theta))
+            r4 = msg.y / math.cos(t_)
+
+            r = [abs(r1), abs(r2), abs(r3), abs(r4)]
+
+            # the ray will collide with one of the two boundaries
+            # it collides with the shortest distance
+            dist = min(r[idx[quad][0]], r[idx[quad][1]])
+            ranges.append(dist)
+
+        # print(ranges)
+        self._pub.publish(ranges)
+
+
+if __name__ == '__main__':
+    rospy.init_node('distance_publisher', anonymous=True)
+
+    rospy.spin()
