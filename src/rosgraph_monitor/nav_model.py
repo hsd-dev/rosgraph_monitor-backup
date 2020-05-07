@@ -1,4 +1,6 @@
-import matplotlib.pyplot as plt
+from rosgraph_monitor.srv import PredictAction, PredictActionResponse
+from std_msgs.msg import String
+import roslibpy
 from sklearn.metrics import mean_absolute_error
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
@@ -13,6 +15,22 @@ class NavModel:
         self._data_set = pd.read_csv(file_name, header=None)
         self._num_sens = num_sens
         self._nav_model = DecisionTreeRegressor()
+
+        # the code needs python3 and melodic is on python2
+        # so interface the module with ROS
+        self.ros_client = roslibpy.Ros('localhost', 9090)
+        self.ros_client.on_ready(lambda: print(
+            'Is ROS connected?', self.ros_client.is_connected))
+        service = roslibpy.Service(
+            self.ros_client, '/turtle_action', 'rosgraph_monitor/PredictAction')
+        service.advertise(self._handle_sensor_data)
+
+    def _handle_sensor_data(self, req, resp):
+        if len(req['sensor_data']) == self._num_sens:
+            action = self.get_action(req['sensor_data'])
+            resp['action'] = action
+            return True
+        return False
 
     def prepare_data(self):
         # adding header row to the raw dataframe
@@ -75,11 +93,17 @@ class NavModel:
         action = self._decode_action(prediction[0])
         return action
 
+    def start_service(self):
+        self.ros_client.run_forever()
+
 
 def main():
-    model = NavModel('pipleine/input/sensor_readings_24.csv', 24)
+    model = NavModel(
+        'resources/sensor_readings_24.csv', 24)
     model.prepare_data()
     model.train()  # should take the sensor array
+    model.start_service()
+
     sensor_raw = [0.382, 0.612, 0.584, 3.665, 2.953, 2.940, 2.740, 2.629, 1.709, 2.311, 1.860,
                   1.640, 1.635, 1.654, 1.755, 0.263, 0.545, 0.475, 0.475, 0.185, 0.464, 0.259, 0.468, 0.278]
     action = model.get_action(sensor_raw)

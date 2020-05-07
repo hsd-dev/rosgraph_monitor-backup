@@ -26,3 +26,9 @@ $ rosrun rosgraph_monitor monitor
 # In a new terminal 
 $ rosservice call /load_observer "name: 'QualityObserver'"
 ```
+
+For NavModel.
+```
+pip3 install roslibpy
+https://pypi.python.org/pypi/service_identity
+```

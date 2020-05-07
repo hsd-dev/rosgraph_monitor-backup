@@ -1,27 +1,28 @@
 from rosgraph_monitor.observer import TopicObserver
-from rosgraph_monitor.nav_model import NavModel
+import rospy
 from std_msgs.msg import Float32MultiArray
+from rosgraph_monitor.srv import PredictAction, PredictActionRequest
 from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 
 class NavObserver(TopicObserver):
     def __init__(self, name):
-        topics = [("/radar", Float32MultiArray)]     # list of pairs
+        topics = [("/radar", Float32MultiArray)]
 
         super(NavObserver, self).__init__(
             name, 10, topics)
 
-        self._model = NavModel(
-            'src/rosgraph_monitor/resources/sensor_readings_24.csv', 24)
-        self._model.prepare_data()
-        self._model.train()
+        rospy.wait_for_service('/turtle_action', timeout=1.0)
+        self.client = rospy.ServiceProxy('/turtle_action', PredictAction)
 
     def calculate_attr(self, msgs):
         status_msg = DiagnosticStatus()
 
-        sensor_data = msgs[0].data
-        attr = self._model.get_action(sensor_data)
-        print("Predicted action: {0}".format(attr))
+        req = PredictActionRequest()
+        req.sensor_data = msgs[0].data
+        resp = self.client(req)
+        attr = resp.action
+        # print("Predicted action: {0}".format(attr))
 
         status_msg = DiagnosticStatus()
         status_msg.level = DiagnosticStatus.OK
