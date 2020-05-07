@@ -4,13 +4,16 @@
   <version>0.0.1</version>
   <description>ROS graph monitor</description>
 
+  <author email="hsd@ipa.fraunhofer.de">Harsh Deshpande</author>
   <maintainer email="hsd@ipa.fraunhofer.de">Harsh Deshpande</maintainer>
   <license>Apache 2.0</license>
-  <author email="hsd@ipa.fraunhofer.de">Harsh Deshpande</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   
   <exec_depend>rospy</exec_depend>
+  <exec_depend>controller_manager_msgs</exec_depend>
+  <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>ros_graph_parser</exec_depend>
 
   <export>
   </export>
