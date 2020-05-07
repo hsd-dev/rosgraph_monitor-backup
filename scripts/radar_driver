@@ -24,7 +24,7 @@ class RadarDriver():
 
     def callback(self, msg):
         theta_ = msg.theta
-
+        data = Float32MultiArray()
         ranges = []
         thetas = []
         for i in range(self._num_sens):
@@ -49,10 +49,11 @@ class RadarDriver():
             ranges.append(dist)
 
         # print(ranges)
-        self._pub.publish(ranges)
+        data.data = ranges
+        self._pub.publish(data)
 
 
 if __name__ == '__main__':
     rospy.init_node('distance_publisher', anonymous=True)
-
+    RadarDriver()
     rospy.spin()
