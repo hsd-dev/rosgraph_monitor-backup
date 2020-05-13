@@ -21,8 +21,11 @@ $ roscore
 # Terminal 2
 $ rosrun rosgraph_monitor monitor
 
-# Publish the topics listed in the `QualityObserver`
+# Publish the topics listed in the `SafetyQualityObserver`  and 'EnergyQualityObserver'
 
 # In a new terminal 
-$ rosservice call /load_observer "name: 'QualityObserver'"
+$ rosservice call /load_observer "name: 'SafetyQualityObserver'"
+
+# In a new terminal 
+$ rosservice call /load_observer "name: 'EnergyQualityObserver'"
 ```
