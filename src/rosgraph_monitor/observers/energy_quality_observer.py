@@ -4,11 +4,11 @@ from std_msgs.msg import Float32
 from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 
-class QualityObserver(TopicObserver):
+class EnergyQualityObserver(TopicObserver):
     def __init__(self, name):
         topics = [("/power_load", Float32)]     # list of pairs
 
-        super(QualityObserver, self).__init__(
+        super(EnergyQualityObserver, self).__init__(
             name, 10, topics)
 
     def calculate_attr(self, msgs):
