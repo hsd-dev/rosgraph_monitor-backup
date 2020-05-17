@@ -6,7 +6,7 @@ from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 class SafetyQualityObserver(TopicObserver):
     def __init__(self, name):
-        topics = [("/speed", Int32), ("/accel", Int32), ("/Pr", Float32)]     # list of pairs
+        topics = [("/cmd_vel", Int32), ("/accel", Int32), ("/safety_distance_publisher_node", Float32)]     # list of pairs
 
         super(SafetyQualityObserver, self).__init__(
             name, 10, topics)
