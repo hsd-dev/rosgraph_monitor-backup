@@ -4,18 +4,18 @@ from std_msgs.msg import Float32
 from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 
-class QualityObserver(TopicObserver):
+class EnergyQualityObserver(TopicObserver):
     def __init__(self, name):
         topics = [("/power_load", Float32)]     # list of pairs
 
-        super(QualityObserver, self).__init__(
+        super(EnergyQualityObserver, self).__init__(
             name, 10, topics)
 
     def calculate_attr(self, msgs):
         status_msg = DiagnosticStatus()
-
-        attr = msgs[0].data
-        print("{0}".format(msgs[0].data))
+	
+        attr =(msgs[0].data - 0.2)/(5.0-0.2) #normalized calue for energy
+        print("{0}".format(str(attr)))
 
         status_msg = DiagnosticStatus()
         status_msg.level = DiagnosticStatus.OK
