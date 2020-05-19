@@ -2,6 +2,9 @@
 
 import math
 from bisect import bisect_left
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from threading import Thread, Lock
 
 import rospy
 from turtlesim.msg import Pose
@@ -19,17 +22,22 @@ def degrees(rad):
 class RadarDriver():
     def __init__(self):
         self._num_sens = 24
+        self._ranges = []
+        self._thetas = []
+        # self._fig = plt.figure()
+        # self._ax = self._fig.add_subplot(111, projection='polar')
+        # self._mutex = Lock()
+
         rospy.Subscriber("/turtle1/pose", Pose, self.callback)
         self._pub = rospy.Publisher('/radar', Float32MultiArray, queue_size=10)
 
     def callback(self, msg):
         theta_ = msg.theta
         data = Float32MultiArray()
-        ranges = []
-        thetas = []
+
         for i in range(self._num_sens):
             theta = theta_ + (((math.pi * 2) / self._num_sens) * i)
-            thetas.append(theta)
+
             # print("{} {} {}".format(i, degrees(theta), (math.pi * 2) / self._num_sens))
             quad = bisect_left(quadrants, degrees(theta))
             if quad == 4:
@@ -46,14 +54,30 @@ class RadarDriver():
             # the ray will collide with one of the two boundaries
             # it collides with the shortest distance
             dist = min(r[idx[quad][0]], r[idx[quad][1]])
-            ranges.append(dist)
+
+            # self._mutex.acquire()
+            self._ranges.append(dist)
+            self._thetas.append(theta)
+            # self._mutex.release()
 
         # print(ranges)
-        data.data = ranges
+        data.data = self._ranges
         self._pub.publish(data)
+
+    # def update(self, i):
+    #     self._ax.clear()
+    #     self._mutex.acquire()
+    #     self._ax.plot(self._thetas, self._ranges)
+    #     self._mutex.release()
+
+    # def animate(self):
+        # ani = animation.FuncAnimation(self._fig, self.update, interval=100)
+        # plt.show()
 
 
 if __name__ == '__main__':
     rospy.init_node('distance_publisher', anonymous=True)
-    RadarDriver()
-    rospy.spin()
+    driver = RadarDriver()
+    # driver.animate()
+
+rospy.spin()
