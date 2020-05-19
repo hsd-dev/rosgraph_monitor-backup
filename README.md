@@ -2,7 +2,7 @@
 
 ## Installation
 ```
-$ cd <path/to/workspace/src> git clone -b observers https://github.com/ipa-hsd/rosgraph_monitor/
+$ cd <path/to/workspace/src> git clone -b nav_observer https://github.com/ipa-hsd/rosgraph_monitor/
 $ cd <path/to/workspace/src> git clone -b SoSymPaper https://github.com/ipa-nhg/ros_graph_parser
 $ cd <path/to/workspace>
 $ source /opt/ros/melodic/setup.bash
@@ -31,4 +31,12 @@ For NavModel.
 ```
 pip3 install roslibpy
 https://pypi.python.org/pypi/service_identity
+```
+
+To run the app:
+```
+roslaunch rosbridge_server rosbridge_websocket.launch
+roslaunch rosgraph_monitor demo.launch
+python3 src/rosgraph_monitor/nav_model.py
+rosservice call /load_observer "name: 'NavObserver'"
 ```
