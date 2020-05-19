@@ -16,9 +16,9 @@ class SafetyQualityObserver(TopicObserver):
     def calculate_attr(self, msgs):
         status_msg = DiagnosticStatus()
 
-        attr = msgs[0].data
-        d_break= ((msgs[0].data**2)/(2*msgs[1].data))
-      
+        attr = msgs[0].twist.twist.linear.x
+        d_break= ((msgs[0].twist.twist.linear.x**2)/(2*msgs[1].linear_acceleration.x))
+
        # print (d_break)
         normalized_safety=1.0
         if (d_break>msgs[2].data):
