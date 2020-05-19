@@ -13,7 +13,6 @@
   <exec_depend>rospy</exec_depend>
   <exec_depend>controller_manager_msgs</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
-  <exec_depend>ros_graph_parser</exec_depend>
   <exec_depend>message_runtime</exec_depend>
 
   <export>
