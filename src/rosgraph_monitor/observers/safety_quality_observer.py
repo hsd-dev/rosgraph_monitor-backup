@@ -2,11 +2,13 @@ from rosgraph_monitor.observer import TopicObserver
 from std_msgs.msg import Int32
 from std_msgs.msg import Float32
 from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
+from sensor_msgs.msg import Imu
+from nav_msgs.msg import Odometry
 
 
 class SafetyQualityObserver(TopicObserver):
     def __init__(self, name):
-        topics = [("/cmd_vel", Int32), ("/accel", Int32), ("/safety_distance_publisher_node", Float32)]     # list of pairs
+        topics = [("/odom", Odometry), ("/imu/data", Imu), ("/d_obstacle", Float32)]     # list of pairs
 
         super(SafetyQualityObserver, self).__init__(
             name, 10, topics)
