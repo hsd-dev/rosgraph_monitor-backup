@@ -29,7 +29,7 @@ class SafetyQualityObserver(TopicObserver):
         status_msg.level = DiagnosticStatus.OK
         status_msg.name = self._id
         status_msg.values.append(
-            KeyValue("safety_distance", str(normalized_safety)))
+            KeyValue("safety", str(normalized_safety)))
         status_msg.message = "QA status"
 
         return status_msg
