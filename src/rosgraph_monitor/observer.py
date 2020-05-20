@@ -57,11 +57,15 @@ class Observer(object):
 
 class ServiceObserver(Observer):
     def __init__(self, name, service_name=None, service_type=None, loop_rate_hz=1):
+        super(ServiceObserver, self).__init__(name, loop_rate_hz)
         self.name = service_name
         self.type = service_type
         self.client = None
-        self.start_service()
-        super(ServiceObserver, self).__init__(name, loop_rate_hz)
+        try:
+            self.start_service()
+        except:
+            print("{} service not started".format(self.name))
+            super.__del__()
 
     def start_service(self):
         try:
@@ -89,10 +93,10 @@ class ServiceObserver(Observer):
 
 class TopicObserver(Observer):
     def __init__(self, name, loop_rate_hz, topics):
+        super(TopicObserver, self).__init__(name, loop_rate_hz)
         self._topics = topics
         self._id = ""
         self._num_topics = len(topics)
-        super(TopicObserver, self).__init__(name, loop_rate_hz)
 
     # Every derived class needs to override this
     def calculate_attr(self, msgs):
