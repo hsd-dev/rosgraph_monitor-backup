@@ -20,8 +20,8 @@ class ROSGraphObserver(ServiceObserver):
             name, '/get_rossystem_model', GetROSSystemModel)
         rospack = rospkg.RosPack()
         # TODO: path to model shouldn't be hardcoded
-        self.model_path = os.path.join(rospack.get_path('rosgraph_monitor'), "resources/cob4-25.rossystem")
-        self._rossystem_parser = ModelParser(self.model_path)
+        self._rossystem_parser = ModelParser(
+            "src/rosgraph_monitor/resources/metacontrol_desired.rossystem")
 
     def diagnostics_from_response(self, resp):
         status_msgs = list()

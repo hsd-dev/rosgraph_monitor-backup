@@ -206,7 +206,7 @@ if __name__ == "__main__":
     rospack = rospkg.RosPack()
     my_path = rospack.get_path('rosgraph_monitor')
     path = os.path.join(
-        my_path, "resources/cob4-25.rossystem")
+        my_path, "../../resources/metacontrol_desired.rossystem")
     print(path)
 
     parser = ModelParser(path)
