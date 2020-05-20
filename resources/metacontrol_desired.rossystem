@@ -1,0 +1,10 @@
+RosSystem { Name 'desired_system'
+	RosComponents ( 
+	ComponentInterface { name move_base },
+	ComponentInterface { name battery_load_control } , 
+	ComponentInterface { name fake_localization } , 
+	ComponentInterface { name laser_filter } , 
+	ComponentInterface { name safety_distance_publisher },
+	ComponentInterface { name graph_monitor }
+)}
+

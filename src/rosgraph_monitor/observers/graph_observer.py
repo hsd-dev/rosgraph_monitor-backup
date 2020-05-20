@@ -20,7 +20,7 @@ class ROSGraphObserver(ServiceObserver):
 
         # TODO: path to model shouldn't be hardcoded
         self._rossystem_parser = ModelParser(
-            "src/rosgraph_monitor/resources/talker_listener.rossystem")
+            "src/rosgraph_monitor/resources/metacontrol_desired.rossystem")
 
     def diagnostics_from_response(self, resp):
         status_msgs = list()
