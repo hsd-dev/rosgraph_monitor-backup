@@ -191,7 +191,7 @@ if __name__ == "__main__":
     import os
     my_path = os.path.abspath(os.path.dirname(__file__))
     path = os.path.join(
-        my_path, "../../resources/cob4-25.rossystem")
+        my_path, "../../resources/metacontrol_desired.rossystem")
     print(path)
 
     parser = ModelParser(path)
