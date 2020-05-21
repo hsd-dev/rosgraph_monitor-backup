@@ -34,7 +34,8 @@ class ModelParser(object):
         # CSB = Close Square Bracket ]
 
         OCB, CCB, ORB, CRB, SQ, OSB, CSB = map(Suppress, "{}()'[]")
-        name = SQ + Word(printables, excludeChars="{},'") + SQ
+        name = Optional(SQ) + Word(printables,
+                                   excludeChars="{},'") + Optional(SQ)
 
         real = Combine(Word(nums) + '.' + Word(nums))
 
@@ -99,6 +100,11 @@ class ModelParser(object):
         _from = Keyword("From").suppress()
         _to = Keyword("To").suppress()
 
+        # global parameters Def
+        _g_parameters = Keyword("Parameters").suppress()
+        _g_parameter = Keyword("Parameter").suppress()
+        _type = Keyword("type").suppress()
+
         listStr << delimitedList(Group(OCB + delimitedList(values) + CCB))
         mapStr << (OSB + delimitedList(Group(OCB + delimitedList((Group(
             sglQuotedString.setParseAction(removeQuotes) + Suppress(":") + values))) + CCB)) + CSB)
@@ -148,6 +154,11 @@ class ModelParser(object):
         topic_connections = (_topic_connections + OCB +
                              OneOrMore(topic_connection + Optional(",").suppress()) + CCB)
 
+        g_parameter = Group(_g_parameter + OCB + _name + name("param_name") +
+                            _type + name("value_type") + param_value("param_value") + CCB)
+        g_parameters = (_g_parameters + OCB +
+                      OneOrMore(g_parameter + Optional(",").suppress()) + CCB)
+
         interface = Group(
             _interface +
             OCB +
@@ -165,8 +176,9 @@ class ModelParser(object):
             OCB + \
             _name + name("system_name") + \
             _component + ORB + \
-            OneOrMore(interface + Optional(",").suppress())("interfaces") + \
-            CRB + Optional(topic_connections)("topic_connections") + CCB
+            OneOrMore(interface + Optional(",").suppress())("interfaces") + CRB \
+            + Optional(topic_connections)("topic_connections") \
+            + Optional(g_parameters)("global_parameters") + CCB
         self._model = model
         self._isFile = isFile
 
@@ -177,6 +189,7 @@ class ModelParser(object):
         self._result = self.rossystem_grammar.parseFile(self._model)
 
     def parse(self):
+        self._result = ParseResults()
         try:
             if self._isFile:
                 self._parse_from_file()
