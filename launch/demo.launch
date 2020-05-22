@@ -1,0 +1,6 @@
+<launch>
+    <node name="turtlesim_node" pkg="turtlesim" type="turtlesim_node" output="screen"/>
+    <node name="teleop" pkg="turtlesim" type="turtle_teleop_key" output="screen"/>
+    <node name="monitor" pkg="rosgraph_monitor" type="monitor" output="screen"/>
+    <node name="radar_driver" pkg="rosgraph_monitor" type="radar_driver" output="screen"/>
+</launch>
