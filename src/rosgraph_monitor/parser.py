@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import pprint
+import rospkg
 from pyparsing import *
 
 # TODO: extract nodes, topics, services, etc from 'result'
@@ -202,9 +203,10 @@ class ModelParser(object):
 
 if __name__ == "__main__":
     import os
-    my_path = os.path.abspath(os.path.dirname(__file__))
+    rospack = rospkg.RosPack()
+    my_path = rospack.get_path('rosgraph_monitor')
     path = os.path.join(
-        my_path, "../../resources/cob4-25.rossystem")
+        my_path, "resources/cob4-25.rossystem")
     print(path)
 
     parser = ModelParser(path)
