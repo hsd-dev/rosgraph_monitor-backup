@@ -87,13 +87,13 @@ class ModelParser(object):
         _action_servers = Keyword("RosActionServers").suppress()
         _action_server = Keyword("RosActionServer").suppress(
         ) | Keyword("RosServer").suppress()
-        _ref_server = Keyword("RefServer").suppress()
+        _ref_server = Keyword("RefServer").suppress() | Keyword("RefActionServer").suppress()
 
         # Actio Clients Def
         _action_clients = Keyword("RosActionClients").suppress()
         _action_client = Keyword("RosActionClient").suppress(
         ) | Keyword("RosClient").suppress()
-        _ref_action_client = Keyword("RefClient").suppress()
+        _ref_action_client = Keyword("RefClient").suppress() | Keyword("RefActionClient").suppress()
 
         # Topic Connections Def
         _topic_connections = Keyword("TopicConnections").suppress()
