@@ -1,0 +1,11 @@
+RosSystem { Name 'cob4-25_navigation_capability'
+    RosComponents ( 
+        ComponentInterface { name 'navigation'
+            RosPublishers {
+                RosPublisher '/scan_unified' {RefPublisher 'cob4./scan_unifier_b1_2193_6719186776096933542./scan_unifier_b1_2193_6719186776096933542./scan_unified'},
+                RosPublisher '/tf' {RefPublisher 'cob4./base/driver./base/driver./tf'},
+                RosPublisher '/base/odometry_controller/odometry' {RefPublisher 'cob4./base/driver./base/driver./base/odometry_controller/odometry'}}
+            RosSubscribers {
+                RosSubscriber '/base/twist_controller/command' { RefSubscriber 'cob4./base/driver./base/driver./base/twist_controller/command'}
+        }}
+)}

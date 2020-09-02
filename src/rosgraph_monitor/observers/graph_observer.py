@@ -20,7 +20,7 @@ class ROSGraphObserver(ServiceObserver):
             name, '/get_rossystem_model', GetROSSystemModel)
         rospack = rospkg.RosPack()
         # TODO: path to model shouldn't be hardcoded
-        self.model_path = os.path.join(rospack.get_path('rosgraph_monitor'), "resources/cob4-25.rossystem")
+        self.model_path = os.path.join(rospack.get_path('rosgraph_monitor'), "resources/cob4-25_navigation.rossystem")
         self._rossystem_parser = ModelParser(self.model_path)
 
     def diagnostics_from_response(self, resp):
@@ -32,11 +32,11 @@ class ROSGraphObserver(ServiceObserver):
         dynamic_model = parser.parse()
         static_model = self._rossystem_parser.parse()
 
-        missing_interfaces, additional_interfaces, incorrect_params = self.compare_models(
+        missing_interfaces, additional_interfaces, incorrect_params, missing_pubs, missing_subs = self.compare_models(
             static_model, dynamic_model)
 
         status_msgs = list()
-        if (not missing_interfaces) & (not additional_interfaces) & (not incorrect_params):
+        if (not missing_interfaces) & (not additional_interfaces) & (not incorrect_params) & (not missing_pubs) & (not missing_subs):
             status_msg = DiagnosticStatus()
             status_msg.level = DiagnosticStatus.OK
             status_msg.name = "ROS Graph"
@@ -69,6 +69,20 @@ class ROSGraphObserver(ServiceObserver):
                         KeyValue(params[0], str(params[1])))
                 status_msgs.append(status_msg)
 
+            # There has to be a for-loop for each capability
+            # But for now we are handling only one capability at a time
+            status_msg = DiagnosticStatus()
+            status_msg.level = DiagnosticStatus.ERROR
+            status_msg.name = "capability"
+            status_msg.message = "Capability incompatible"
+            # Do this for all interfaces
+            if missing_pubs:
+                status_msg.values.append(KeyValue("publishers", "".join(missing_pubs)))
+            if missing_subs:
+                status_msg.values.append(KeyValue("subscribers", "".join(missing_subs)))
+            status_msgs.append(status_msg)
+            print(status_msg)
+
         return status_msgs
 
     # find out missing and additional interfaces
@@ -79,6 +93,23 @@ class ROSGraphObserver(ServiceObserver):
                       for x in model_ref.interfaces)
         set_current = set((strip_slash(x.interface_name[0]))
                           for x in model_current.interfaces)
+
+        #compare interfaces within components excluding the components
+        pub_ref = set()
+        sub_ref = set()
+        for interface in model_ref.interfaces:
+            for pub in interface.publishers:
+                pub_ref.add(strip_slash(pub.pub_name[0]))
+            for sub in interface.subscribers:
+                sub_ref.add(strip_slash(sub.sub_name[0]))
+
+        pub_current = set()
+        sub_current = set()
+        for interface in model_current.interfaces:
+            for pub in interface.publishers:
+                pub_current.add(strip_slash(pub.pub_name[0]))
+            for sub in interface.subscribers:
+                sub_current.add(strip_slash(sub.sub_name[0]))
 
         # similarly for all interfaces within the node?
         # or only for topic connections?
@@ -120,4 +151,4 @@ class ROSGraphObserver(ServiceObserver):
                 pass
 
         # returning missing_interfaces, additional_interfaces
-        return list(set_ref - set_current), list(set_current - set_ref), incorrect_params
+        return list(set_ref - set_current), list(set_current - set_ref), incorrect_params, list(pub_ref - pub_current), list(sub_ref - sub_current)
