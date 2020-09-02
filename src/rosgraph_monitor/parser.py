@@ -196,8 +196,8 @@ class ModelParser(object):
                 self._parse_from_file()
             else:
                 self._parse_from_string()
-        except Exception as e:
-            print(e.args)   # Should set a default 'result'?
+        except ParseException as e:
+            print(ParseException.explain(e, depth=0))   # Should set a default 'result'?
         return self._result
 
 
