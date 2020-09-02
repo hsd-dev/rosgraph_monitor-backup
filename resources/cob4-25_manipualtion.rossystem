@@ -1,0 +1,12 @@
+RosSystem { Name 'cob4-25_manipulation_capability'
+    RosComponents ( 
+        ComponentInterface { name 'manipulation'
+            RosPublishers {
+                RosPublisher '/tf' {RefPublisher 'cob4./base/driver./base/driver./tf'}}
+            RosSubscribers {
+                RosSubscriber '/arm_right/joint_trajectory_controller/command' {RefSubscriber 'cob4./arm_right/driver./arm_right/driver./arm_right/joint_trajectory_controller/command'},
+                RosSubscriber '/arm_left/joint_trajectory_controller/command' {RefSubscriber 'cob4./arm_left/driver./arm_left/driver./arm_left/joint_trajectory_controller/command'}}
+            RosParameters {
+                RosParameter 'robot_description' { RefParameter "cob4.parameters_node.parameters_node./robot_description"}
+            }}
+)}
