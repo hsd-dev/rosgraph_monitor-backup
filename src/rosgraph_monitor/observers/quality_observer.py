@@ -8,7 +8,7 @@ class QualityObserver(TopicObserver):
         topics = [("/speed", Int32), ("/accel", Int32)]     # list of pairs
 
         super(QualityObserver, self).__init__(
-            name, 10, topics)
+            name=name, loop_rate_hz=10, topics=topics, output_topic_name=None, msg_type=None)
 
     def calculate_attr(self, msgs):
         status_msg = DiagnosticStatus()
