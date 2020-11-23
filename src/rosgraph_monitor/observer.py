@@ -5,7 +5,7 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 
 class Observer(object):
-    def __init__(self, name, loop_rate_hz=1):
+    def __init__(self, name, output_topic_name=None, msg_type=None, loop_rate_hz=1):
         self._name = name
         self._rate = rospy.Rate(loop_rate_hz)
         self._seq = 1
@@ -14,9 +14,6 @@ class Observer(object):
             target=self._run)
         self._thread.daemon = True
         self._stop_event = threading.Event()
-
-        self._pub_diag = rospy.Publisher(
-            '/diagnostics', DiagnosticArray, queue_size=10)
 
     def __del__(self):
         if Observer:
@@ -40,6 +37,9 @@ class Observer(object):
             self._rate.sleep()
 
     def start(self):
+        self._pub_diag = rospy.Publisher(
+            '/diagnostics', DiagnosticArray, queue_size=10
+        )
         print("starting {}...".format(self._name))
         self._thread.start()
 
@@ -92,8 +92,8 @@ class ServiceObserver(Observer):
 
 
 class TopicObserver(Observer):
-    def __init__(self, name, loop_rate_hz, topics):
-        super(TopicObserver, self).__init__(name, loop_rate_hz)
+    def __init__(self, name, output_topic_name, msg_type, loop_rate_hz, topics):
+        super(TopicObserver, self).__init__(name, output_topic_name, msg_type, loop_rate_hz)
         self._topics = topics
         self._id = ""
         self._num_topics = len(topics)
