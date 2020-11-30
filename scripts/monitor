@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import importlib
 import time
@@ -55,7 +55,7 @@ class ModuleManager(object):
         try:
             module = self._modules[name]
             self._observers[name] = getattr(module, name)(name)
-            self._observers[name].start()
+            self._observers[name].start(self._observers[name].perform_output)
         except Exception as exc:
             print("Could not start {}".format(name))
             started = False

@@ -1,5 +1,4 @@
 import threading
-import mutex
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
@@ -8,39 +7,38 @@ class Observer(object):
     def __init__(self, name, loop_rate_hz=1):
         self._name = name
         self._rate = rospy.Rate(loop_rate_hz)
-        self._seq = 1
         self._lock = threading.Lock()
         self._thread = threading.Thread(
             target=self._run)
         self._thread.daemon = True
         self._stop_event = threading.Event()
 
-        self._pub_diag = rospy.Publisher(
-            '/diagnostics', DiagnosticArray, queue_size=10)
-
     def __del__(self):
         if Observer:
             print("{} stopped".format(self._name))
 
     # Every derived class needs to override this
-    def generate_diagnostics(self):
-        msg = DiagnosticArray()
-        return msg
+    # def generate_diagnostics(self):
+    #     msg = DiagnosticArray()
+    #     return msg
+    def generate_output():
+        return None
 
     def _run(self):
+        print("starting thread")
         while not rospy.is_shutdown() and not self._stopped():
-            diag_msg = DiagnosticArray()
-            diag_msg.header.stamp = rospy.get_rostime()
+            msg = self.generate_output()
+            print(msg)
 
-            status_msgs = self.generate_diagnostics()
-            diag_msg.status.extend(status_msgs)
-            self._pub_diag.publish(diag_msg)
+            # perform_output() should be implemented by OutputInterface's sub-class
+            # what would be a better way of doing this?
+            self._perform_output(msg)
 
-            self._seq += 1
             self._rate.sleep()
 
-    def start(self):
+    def start(self, func):
         print("starting {}...".format(self._name))
+        self._perform_output = func
         self._thread.start()
 
     def stop(self):
@@ -76,48 +74,51 @@ class ServiceObserver(Observer):
         except rospy.ServiceException as exc:
             print("Service {} is not running: ".format(self.name) + str(exc))
 
-    def generate_diagnostics(self):
+    def generate_output(self):
         try:
             resp = self.client.call()
         except rospy.ServiceException as exc:
             print("Service {} did not process request: ".format(
                 self.name) + str(exc))
-        status_msg = self.diagnostics_from_response(resp)
-        return status_msg
+        # status_msg = self.diagnostics_from_response(resp)
+        # return status_msg
 
     # Every derived class needs to override this
-    def diagnostics_from_response(self, response):
-        msg = DiagnosticArray()
-        return msg
+    # def diagnostics_from_response(self, response):
+    #     msg = DiagnosticArray()
+    #     return msg
 
 
 class TopicObserver(Observer):
     def __init__(self, name, loop_rate_hz, topics):
-        super(TopicObserver, self).__init__(name, loop_rate_hz)
+        super(TopicObserver, self).__init__(name=name, loop_rate_hz=loop_rate_hz)
         self._topics = topics
         self._id = ""
         self._num_topics = len(topics)
+
+    def is_close(self, a, b, rel_tol=1e-09, abs_tol=0.0):
+        return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
     # Every derived class needs to override this
     def calculate_attr(self, msgs):
         # do calculations
         return DiagnosticStatus()
 
-    def generate_diagnostics(self):
+    def generate_output(self):
         msgs = []
         received_all = True
         for topic, topic_type in self._topics:
             try:
+                # Add message synchronization here
+                # Consider "asynchronous" reception as well?
                 msgs.append(rospy.wait_for_message(topic, topic_type))
             except rospy.ROSException as exc:
                 print("Topic {} is not found: ".format(topic) + str(exc))
                 received_all = False
                 break
 
-        status_msgs = list()
-        status_msg = DiagnosticStatus()
+        msg = None
         if received_all:
-            status_msg = self.calculate_attr(msgs)
-        status_msgs.append(status_msg)
+            msg = self.calculate_attr(msgs)
 
-        return status_msgs
+        return msg
