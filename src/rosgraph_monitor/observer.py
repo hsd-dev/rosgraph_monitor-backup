@@ -1,6 +1,5 @@
 import threading
 import rospy
-from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 
 class Observer(object):
@@ -25,13 +24,11 @@ class Observer(object):
         return None
 
     def _run(self):
-        print("starting thread")
         while not rospy.is_shutdown() and not self._stopped():
             msg = self.generate_output()
             print(msg)
 
             # perform_output() should be implemented by OutputInterface's sub-class
-            # what would be a better way of doing this?
             self._perform_output(msg)
 
             self._rate.sleep()
@@ -102,14 +99,14 @@ class TopicObserver(Observer):
     # Every derived class needs to override this
     def calculate_attr(self, msgs):
         # do calculations
-        return DiagnosticStatus()
+        return None
 
     def generate_output(self):
         msgs = []
         received_all = True
         for topic, topic_type in self._topics:
             try:
-                # Add message synchronization here
+                # Add message synchronization here -- message filter
                 # Consider "asynchronous" reception as well?
                 msgs.append(rospy.wait_for_message(topic, topic_type))
             except rospy.ROSException as exc:
