@@ -1,10 +1,12 @@
 import imp
-from rosgraph_monitor.observer import ServiceObserver
-from rosgraph_monitor.parser import ModelParser
-from pyparsing import *
-import rospkg
 import os.path
 import re
+from pyparsing import *
+import rospkg
+from rosgraph_monitor.observer import ServiceObserver
+from rosgraph_monitor.output_interface import ObservationOutputPublisher
+from rosgraph_monitor.parser import ModelParser
+
 
 from ros_graph_parser.srv import GetROSModel, GetROSSystemModel
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -14,7 +16,7 @@ def strip_slash(string):
     return '{}'.format(string[1:] if string.startswith('/') else string)
 
 
-class ROSGraphObserver(ServiceObserver):
+class ROSGraphObserver(ServiceObserver, ObservationOutputPublisher):
     def __init__(self, name):
         super(ROSGraphObserver, self).__init__(
             name, '/get_rossystem_model', GetROSSystemModel)
@@ -23,7 +25,8 @@ class ROSGraphObserver(ServiceObserver):
         self.model_path = os.path.join(rospack.get_path('rosgraph_monitor'), "resources/cob4-25.rossystem")
         self._rossystem_parser = ModelParser(self.model_path)
 
-    def diagnostics_from_response(self, resp):
+    def msg_from_response(self, resp):
+        diag_array = DiagnosticArray()
         status_msgs = list()
         if resp is None:
             return status_msgs
@@ -69,7 +72,8 @@ class ROSGraphObserver(ServiceObserver):
                         KeyValue(params[0], str(params[1])))
                 status_msgs.append(status_msg)
 
-        return status_msgs
+        diag_msg.status.extend(status_msgs)
+        return diag_msg
 
     # find out missing and additional interfaces
     # if both lists are empty, system is running fine

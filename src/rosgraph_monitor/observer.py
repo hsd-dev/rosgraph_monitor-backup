@@ -17,9 +17,6 @@ class Observer(object):
             print("{} stopped".format(self._name))
 
     # Every derived class needs to override this
-    # def generate_diagnostics(self):
-    #     msg = DiagnosticArray()
-    #     return msg
     def generate_output():
         return None
 
@@ -77,13 +74,12 @@ class ServiceObserver(Observer):
         except rospy.ServiceException as exc:
             print("Service {} did not process request: ".format(
                 self.name) + str(exc))
-        # status_msg = self.diagnostics_from_response(resp)
-        # return status_msg
+        msg = self.msg_from_response(resp)
+        return msg
 
     # Every derived class needs to override this
-    # def diagnostics_from_response(self, response):
-    #     msg = DiagnosticArray()
-    #     return msg
+    def msg_from_response(self, response):
+        None
 
 
 class TopicObserver(Observer):
