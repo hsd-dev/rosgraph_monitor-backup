@@ -14,7 +14,7 @@
   <exec_depend>controller_manager_msgs</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
   <exec_depend>ros_graph_parser</exec_depend>
-  <exec_depend>rospkg</exec_depend>
+  <exec_depend>python-rospkg</exec_depend>
 
   <export>
   </export>
