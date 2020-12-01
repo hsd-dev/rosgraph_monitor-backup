@@ -9,7 +9,7 @@ class OutputInterface(object):
         pass
 
 
-class ObservationPublisher(OutputInterface):
+class ObservationOutputPublisher(OutputInterface):
     def __init__(self, topic_name, message_type):
         super(ObservationPublisher, self).__init__()
 
@@ -26,3 +26,20 @@ class ObservationPublisher(OutputInterface):
         self._publisher.publish(msg)
         self._seq += 1
 
+
+class ObservationOutputLogger(OutputInterface):
+    def __init__(self, file_name):
+        pass
+
+    def perform_output(self, msg):
+        # do logging
+        pass
+
+
+class ObservationOutputPlotter(OutputInterface):
+    def __init__(self, plt_params):
+        pass
+
+    def perform_output(self, msg):
+        # do plotting
+        pass
