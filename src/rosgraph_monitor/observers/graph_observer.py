@@ -47,8 +47,10 @@ class ROSGraphObserver(ServiceObserver):
             for interface in missing_interfaces:
                 status_msg = DiagnosticStatus()
                 status_msg.level = DiagnosticStatus.ERROR
-                status_msg.name = interface
-                status_msg.message = "Missing node"
+                status_msg.name = ''
+                status_msg.message = "Component status"
+                status_msg.values.append(
+                        KeyValue(interface, "FALSE"))
                 status_msgs.append(status_msg)
 
             for interface in additional_interfaces:
